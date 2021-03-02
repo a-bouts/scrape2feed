@@ -1,0 +1,8 @@
+CREATE TABLE items (
+  id VARCHAR NOT NULL PRIMARY KEY,
+  feed VARCHAR NOT NULL,
+  title VARCHAR NOT NULL,
+  link VARCHAR NOT NULL,
+  publication_date DATETIME NOT NULL,
+  FOREIGN KEY(feed) REFERENCES feeds(id)
+)
