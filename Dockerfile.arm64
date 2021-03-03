@@ -18,11 +18,7 @@ RUN sed 's/^deb/deb-src/' /etc/apt/sources.list > \
     && apt-get install -y \
         --no-install-recommends \
         libssl-dev:arm64 \
-        libc6-dev:arm64 \
-        libpq5:arm64 \
-        libpq-dev \
-        libmariadb-dev:arm64 \
-        libmariadb-dev-compat:arm64
+        libc6-dev:arm64
 
 RUN apt-get update \
     && apt-get install -y \
@@ -44,22 +40,6 @@ WORKDIR /app
 COPY ./server/Cargo.* ./
 COPY ./server/rust-toolchain ./rust-toolchain
 COPY ./server/build.rs ./build.rs
-
-# NOTE: This should be the last apt-get/dpkg for this stage, since after this it will fail because of broken dependencies.
-# For Diesel-RS migrations_macros to compile with MySQL/MariaDB we need to do some magic.
-# We at least need libmariadb3:amd64 installed for the x86_64 version of libmariadb.so (client)
-# We also need the libmariadb-dev-compat:amd64 but it can not be installed together with the :arm64 version.
-# What we can do is a force install, because nothing important is overlapping each other.
-RUN apt-get install -y --no-install-recommends libmariadb3:amd64 && \
-    apt-get download libmariadb-dev-compat:amd64 && \
-    dpkg --force-all -i ./libmariadb-dev-compat*.deb && \
-    rm -rvf ./libmariadb-dev-compat*.deb
-
-# For Diesel-RS migrations_macros to compile with PostgreSQL we need to do some magic.
-# The libpq5:arm64 package seems to not provide a symlink to libpq.so.5 with the name libpq.so.
-# This is only provided by the libpq-dev package which can't be installed for both arch at the same time.
-# Without this specific file the ld command will fail and compilation fails with it.
-RUN ln -sfnr /usr/lib/aarch64-linux-gnu/libpq.so.5 /usr/lib/aarch64-linux-gnu/libpq.so
 
 ENV CC_aarch64_unknown_linux_gnu="/usr/bin/aarch64-linux-gnu-gcc"
 ENV CROSS_COMPILE="1"
