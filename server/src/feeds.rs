@@ -61,7 +61,7 @@ pub fn refresh_feed(feed: &db::models::Feed) -> Result<()> {
 
         let title_element = match title_selector {
             Some(ref ts) => {
-                description = Some(node.inner_html());
+                description = Some(node.html());
                 node.select(ts).next()
             },
             None => Some(node),
