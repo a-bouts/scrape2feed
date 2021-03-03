@@ -74,7 +74,7 @@ export default {
       navigator.clipboard.writeText(text)
     },
     feedLink(feed) {
-      return "/api/v1/feeds/" + feed.id
+      return window.location.origin + "/api/v1/feeds/" + feed.id
     },
     remove(feed) {
       console.log("Delete feed " + feed.id)
