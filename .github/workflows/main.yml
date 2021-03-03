@@ -17,7 +17,7 @@ jobs:
         id: prepare
         run: |
           DOCKER_IMAGE=stoub/scrape2feed
-          DOCKER_PLATFORMS=linux/amd64,linux/arm64,linux/arm/v7
+          DOCKER_PLATFORMS=linux/arm64
           VERSION=${GITHUB_REF##*/}-${GITHUB_SHA::8}
 
           if [[ $GITHUB_REF == refs/tags/* ]]; then
@@ -37,7 +37,7 @@ jobs:
             --build-arg VERSION=${VERSION} \
             --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
             --build-arg VCS_REF=${GITHUB_SHA::8} \
-            ${TAGS} --file ./Dockerfile ./
+            ${TAGS} --file ./Dockerfile.arm64 ./
 
       - name: Set up Docker Buildx
         uses: crazy-max/ghaction-docker-buildx@v3.3.1

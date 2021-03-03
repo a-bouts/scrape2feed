@@ -1,4 +1,9 @@
-.idea
+/server/.idea
+/server/target
+/server/data
+
+
+/ui/dist
+/ui/node_modules
+
 .git
-target
-web/node_modules

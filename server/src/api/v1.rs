@@ -41,7 +41,7 @@ pub fn get_feeds() -> Json<Vec<Feed>> {
     Json(model)
 }
 
-#[get("/feeds/<id>")]
+#[get("/feeds/<id>/debug")]
 pub fn get_feed(id: String) -> Json<Option<Feed>> {
     let feed = db::feeds::get_feed(id.clone());
 
@@ -72,7 +72,7 @@ pub fn get_feed(id: String) -> Json<Option<Feed>> {
     }
 }
 
-#[get("/feeds/<id>/content")]
+#[get("/feeds/<id>")]
 pub fn get_feed_content(id: String) -> Result<'static> {
     let feed = db::feeds::get_feed(id.clone());
 

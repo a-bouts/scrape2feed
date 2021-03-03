@@ -11,7 +11,7 @@ reqwest = { version = "*", features = ["blocking"] }
 scraper = "*"
 prettytable-rs = "*"
 futures = "*"
-rss = { verion = "*", features = ["builders"] }
+rss = { version = "*", features = ["builders"] }
 tokio = { version = "*", features = ["full"] }
 pretty_env_logger = "*"
 log = "*"
@@ -20,9 +20,10 @@ serde = { version = "*", features = ["derive"]}
 rocket = "*"
 rocket_http = "*"
 diesel = { version = "*", features = ["sqlite", "chrono"] }
-diesel_migrations = "*"
+diesel_migrations = { version = "*", features = ["sqlite"] }
 dotenv = "*"
 uuid = { version = "*", features = ["serde", "v4"] }
+libsqlite3-sys = { version = "0.18.0", features = ["bundled"] }
 
 [dependencies.rocket_contrib]
 version = "*"
