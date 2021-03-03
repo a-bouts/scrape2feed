@@ -1,86 +1,87 @@
 <template>
   <div class="container">
-    <div class="columns">
-      <div class="column">
-        <div class="field is-horizontal">
-          <div class="field-label is-normal">
-            <label class="label">Url</label>
-          </div>
-          <div class="field-body">
-            <div class="field">
-              <p class="control is-expanded">
-                <input class="input" type="text" placeholder="url" v-model="url">
-              </p>
+    <section class="hero is-small">
+      <div class="hero-body">
+        <div class="columns is-vcentered">
+          <div class="column">
+            <div class="field is-horizontal">
+              <div class="field-label is-small">
+                <label class="label">Url</label>
+              </div>
+              <div class="field-body">
+                <div class="field">
+                  <p class="control is-expanded">
+                    <input class="input is-small" type="text" placeholder="url" v-model="url">
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div class="field is-horizontal">
-          <div class="field-label is-normal">
-            <label class="label">Title</label>
-          </div>
-          <div class="field-body">
-            <div class="field">
-              <p class="control is-expanded">
-                <input class="input" type="text" placeholder="url" v-model="feed.title">
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="column">
-        <div class="field is-horizontal">
-          <div class="field-label is-normal">
-            <label class="label">Node Selector</label>
-          </div>
-          <div class="field-body">
-            <div class="field is-expanded">
-              <div class="field has-addons">
-                <p class="control is-expanded">
-                  <input class="input" type="text" v-model="feed.nodeSelector">
-                </p>
-                <p class="control">
-                  <a class="button" @click="selectTitle">Set</a>
-                </p>
+            <div class="field is-horizontal">
+              <div class="field-label is-small">
+                <label class="label">Title</label>
+              </div>
+              <div class="field-body">
+                <div class="field">
+                  <p class="control is-expanded">
+                    <input class="input is-small" type="text" placeholder="url" v-model="feed.title">
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="field is-horizontal">
-          <div class="field-label is-normal">
-            <label class="label">Title Selector</label>
-          </div>
-          <div class="field-body">
-            <div class="field is-expanded">
-              <div class="field has-addons">
-                <p class="control is-expanded">
-                  <input class="input" type="text" placeholder="url" v-model="feed.titleSelector">
-                </p>
-                <p class="control">
-                  <a class="button" @click="selectTitle">Set</a>
-                </p>
+          <div class="column">
+            <div class="field is-horizontal">
+              <div class="field-label is-small">
+                <label class="label">Node Selector</label>
+              </div>
+              <div class="field-body">
+                <div class="field is-expanded">
+                  <div class="field has-addons">
+                    <p class="control is-expanded">
+                      <input class="input is-small" type="text" v-model="feed.nodeSelector">
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="field is-horizontal">
+              <div class="field-label is-small">
+                <label class="label">Title Selector</label>
+              </div>
+              <div class="field-body">
+                <div class="field is-expanded">
+                  <div class="field has-addons">
+                    <p class="control is-expanded">
+                      <input class="input is-small" type="text" v-model="feed.titleSelector">
+                    </p>
+                    <p class="control">
+                      <a class="button is-small" :class="{'is-info': state == 'STATE_SELECTING'}" @click="selectTitle">Set</a>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="field is-horizontal">
+              <div class="field-label is-small">
+                <label class="label">Link Selector</label>
+              </div>
+              <div class="field-body">
+                <div class="field">
+                  <p class="control is-expanded">
+                    <input class="input is-small" type="text" v-model="feed.linkSelector">
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="field is-horizontal">
-          <div class="field-label is-normal">
-            <label class="label">Link Selector</label>
-          </div>
-          <div class="field-body">
-            <div class="field">
-              <p class="control is-expanded">
-                <input class="input" type="text" placeholder="url" v-model="feed.linkSelector">
-              </p>
-            </div>
+          <div class="column is-1">
+            <p class="buttons">
+              <button class="button is-fullwidth is-primary is-small" @click="add">Add</button>
+            </p>
           </div>
         </div>
       </div>
-      <div class="column">
-        <p class="buttons">
-          <button class="button is-fullwidth is-primary" @click="add">Add</button>
-        </p>
-      </div>
-    </div>
+    </section>
 
     <div>
       <figure class="image is-16by9">
