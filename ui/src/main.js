@@ -7,6 +7,11 @@ import Feed from './components/Feed.vue'
 
 import 'bulma/css/bulma.css'
 
+import 'animate.css/animate.min.css'
+
+import '@fortawesome/fontawesome-free/css/all.css'
+import '@fortawesome/fontawesome-free/js/all.js'
+
 Vue.use(VueRouter)
 
 Vue.config.productionTip = false

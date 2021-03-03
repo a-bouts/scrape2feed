@@ -25,20 +25,21 @@
         </div>
       </div>
     </section>
-    <table class="table is-bordered is-fullwidth">
+    <table class="table is-bordered is-stripped is-fullwidth">
       <thead>
         <tr>
-          <th>Id</th>
+          <th></th>
           <th>Title</th>
           <th>Link</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="feed in feeds" :key="feed.id">
-          <td><a :href="feedLink(feed)">{{ feed.id }}</a></td>
-          <td>{{ feed.title }}</td>
-          <td><a :href="feed.link">{{ feed.link }}</a></td>
-          <td><button @click="remove(feed)">Delete</button></td>
+          <td><span class="icon is-clickable has-tooltip-active" @click="copy(feedLink(feed))"><i class="far fa-clone"></i></span></td>
+          <td class="is-clipped" width="50%">{{ feed.title }}</td>
+          <td class="is-clipped" width="50%"><a :href="feed.link">{{ feed.link }}</a></td>
+          <td><span class="icon is-clickable" @click="remove(feed)"><i class="fa fa-trash"></i></span></td>
         </tr>
       </tbody>
     </table>
@@ -46,6 +47,8 @@
 </template>
 
 <script>
+import * as bulmaToast from 'bulma-toast'
+
 export default {
   name: 'Feeds',
   data() {
@@ -60,8 +63,18 @@ export default {
       .then(feeds => this.feeds = feeds)
   },
   methods: {
+    copy(text) {
+      bulmaToast.toast({
+        message: text + " copied!",
+        type: 'is-info is-light',
+        duration: 2000,
+        position: "top-center",
+        animate: { in: 'fadeInDown', out: 'fadeOutUp' },
+      })
+      navigator.clipboard.writeText(text)
+    },
     feedLink(feed) {
-      return "/api/v1/feeds/" + feed.id + "/content"
+      return "/api/v1/feeds/" + feed.id
     },
     remove(feed) {
       console.log("Delete feed " + feed.id)
@@ -79,4 +92,7 @@ export default {
 </script>
 
 <style scoped>
+td {
+  vertical-align: middle !important;
+}
 </style>
