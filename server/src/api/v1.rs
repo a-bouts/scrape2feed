@@ -54,6 +54,7 @@ pub fn get_feed(id: String) -> Json<Option<Feed>> {
             id: item.id,
             title: item.title,
             link: item.link,
+            description: item.description,
             publication_date: item.publication_date
         })
     }

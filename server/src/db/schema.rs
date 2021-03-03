@@ -16,6 +16,7 @@ table! {
         title -> Text,
         link -> Text,
         publication_date -> Timestamp,
+        description -> Nullable<Text>,
     }
 }
 

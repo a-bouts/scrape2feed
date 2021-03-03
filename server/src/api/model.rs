@@ -24,6 +24,7 @@ pub struct Item {
     pub id: String,
     pub title: String,
     pub link: String,
+    pub description: Option<String>,
     pub publication_date: NaiveDateTime
 }
 

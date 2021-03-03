@@ -56,7 +56,7 @@
                   <input class="input" type="text" placeholder="url" v-model="feed.titleSelector">
                 </p>
                 <p class="control">
-                  <a class="button is-static" @click="selectTitle">Set</a>
+                  <a class="button" @click="selectTitle">Set</a>
                 </p>
               </div>
             </div>
@@ -101,6 +101,10 @@ export default {
   data() {
     return {
       styles: {
+        containerHover: {
+          background: "#fc9c1e",
+          color: "black"
+        },
         hover: {
           background: "#ffeb0d",
           color: "black"
@@ -108,6 +112,10 @@ export default {
         title: {
           background: "#006dcc",
           color: "white"
+        },
+        selectedContainer: {
+          background: "#b5dafc",
+          color: "black"
         }
       },
       downloadUrl: "",
@@ -119,10 +127,22 @@ export default {
         linkSelector: ""
       },
       state: undefined,
-      hoverElements: [],
-      hoverStylesBackup: [],
-      selectedTitles: [],
-      selectedTitlesStylesBackup: [],
+      hover: {
+        elements: [],
+        stylesBackup: []
+      },
+      hoverContainer: {
+        elements: [],
+        stylesBackup: []
+      },
+      selected: {
+        elements: [],
+        stylesBackup: []
+      },
+      selectedContainer: {
+        elements: [],
+        stylesBackup: []
+      }
     }
   },
   created() {
@@ -137,60 +157,76 @@ export default {
     },
     selectTitle() {
       this.state = "STATE_SELECTING"
+      this.restoreStyles(this.selected)
+      this.restoreStyles(this.selectedContainer)
       $('iframe').contents().on('mouseenter mouseleave', '*', this.onIframeElementHover)
       $('iframe').contents().on('click', '*', this.onSelectTitle)
     },
-    applyStyles(list, styles) {
+    applyStyles(list, styles, state) {
       for (var i = 0 ; i < list.length ; i++) {
-        this.hoverElements.push(list[i])
+        state.elements.push(list[i])
         var backup = {}
         for (const k of Object.keys(styles)) {
-          backup[k] = list[i].style[k]
+          backup[k] = list[i].style ? list[i].style[k] : undefined
         }
-        this.hoverStylesBackup.push(backup)
+        state.stylesBackup.push(backup)
 
         for (const [k, v] of Object.entries(styles)) {
           list[i].style[k] = v
         }
       }
     },
-    restoreStyles() {
-      for (var i = 0 ; i < this.hoverElements.length ; i++) {
-        for (const [k, v] of Object.entries(this.hoverStylesBackup[i])) {
-          this.hoverElements[i].style[k] = v
+    restoreStyles(state) {
+      for (var i = 0 ; i < state.elements.length ; i++) {
+        for (const [k, v] of Object.entries(state.stylesBackup[i])) {
+          state.elements[i].style[k] = v
         }
       }
-      this.hoverElements = []
-      this.hoverstylesBackup = []
+      state.elements = []
+      state.stylesBackup = []
     },
     onIframeElementHover(event) {
       if (this.state == "STATE_SELECTING") {
         if (event.type == 'mouseenter') {
 
           // On supprime les styles des elements
-          this.restoreStyles()
+          this.restoreStyles(this.hover)
+          this.restoreStyles(this.hoverContainer)
 
           // On récupère le chemin de l'élement courant
-          var p = event.target
-          var path = p.nodeName
-          while (p.parentElement) {
-            p = p.parentElement
-            path = p.nodeName + " > " + path
-          }
-
-          this.feed.nodeSelector = path.replaceAll(" > ", " ")
+          var path = this.getFullPath(event.target)
 
           // On selectionne tous ses compères
           var list = $('iframe').contents().find(path)
 
-          this.applyStyles(list, this.styles.hover)
+          // On détecte le plus vieux parents distinct
+          var nodes = this.findNodes(list)
+
+          this.applyStyles(list, this.styles.hover, this.hover)
+          if (nodes.length > 1 && nodes[0] !== list[0]) {
+            this.applyStyles(nodes, this.styles.containerHover, this.hoverContainer)
+          }
 
           event.stopPropagation()
         }
         else { // mouseleave
-          this.restoreStyles()
+          this.restoreStyles(this.hover)
+          this.restoreStyles(this.hoverContainer)
         }
       }
+    },
+    findNodes(list) {
+      if(list.length == 0) {
+        return list
+      }
+
+      let parents = list.parent()
+
+      if (parents.length == list.length) {
+        return this.findNodes(parents)
+      }
+
+      return list
     },
     onSelectTitle(event) {
       event.stopPropagation()
@@ -198,11 +234,78 @@ export default {
 
       this.state = ""
 
-      this.selectedTitles = this.hoverElements
-      this.restoreStyles()
-      this.applyStyles(this.selectedTitles, this.styles.title)
+      let elements = this.hover.elements
+      let containerElements = this.hoverContainer.elements
+      this.restoreStyles(this.hover)
+      this.restoreStyles(this.hoverContainer)
+      this.applyStyles(elements, this.styles.title, this.selected)
+      this.applyStyles(containerElements, this.styles.selectedContainer, this.selectedContainer)
+
+      // On récupère le chemin de l'élement courant
+      var nodePath = this.getFullPath(event.target)
+      var titlePath = ""
+      var linkPath = ""
+
+      // On selectionne tous ses compères
+      var list = $('iframe').contents().find(nodePath)
+
+      // On détecte le plus vieux parents distinct
+      var nodes = this.findNodes(list)
+
+      // il y a bien un parent
+      if (nodes.length > 1 && nodes[0] !== list[0]) {
+        nodePath = this.getFullPath(nodes[0])
+        titlePath = this.getPath(list[0], nodes[0])
+      }
+
+      // Recherche un lien
+      let link = this.findLink(list[0], nodes[0])
+      if (link) {
+        linkPath = this.getPath(link, nodes[0])
+      }
+
+      this.feed.nodeSelector = nodePath.replaceAll(" > ", " ")
+      this.feed.titleSelector = titlePath.replaceAll(" > ", " ")
+      this.feed.linkSelector = linkPath.replaceAll(" > ", " ")
 
       return false
+    },
+    findLink(element, parent) {
+      var p = element
+      console.log(p.nodeName)
+      if (p.nodeName === "A") {
+        return p
+      }
+      while (p.parentElement && p.parentElement != parent) {
+        p = p.parentElement
+        if (p.nodeName == "A") {
+          return p
+        }
+      }
+    },
+    getPath(element, parent) {
+      if (element === parent) {
+        return
+      }
+
+      var p = element
+      var path = p.nodeName
+      while (p.parentElement && p.parentElement != parent) {
+        p = p.parentElement
+        path = p.nodeName + " > " + path
+      }
+
+      return path
+    },
+    getFullPath(element) {
+      var p = element
+      var path = p.nodeName
+      while (p.parentElement) {
+        p = p.parentElement
+        path = p.nodeName + " > " + path
+      }
+
+      return path
     },
     add() {
 

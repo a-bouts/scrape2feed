@@ -24,6 +24,7 @@ pub fn create_item(item: NewItem) -> String {
         feed: item.feed,
         title: item.title,
         link: item.link,
+        description: item.description,
         publication_date: item.publication_date
     };
 

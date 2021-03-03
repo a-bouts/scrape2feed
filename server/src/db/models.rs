@@ -17,7 +17,8 @@ pub struct Item {
     pub feed: String,
     pub title: String,
     pub link: String,
-    pub publication_date: NaiveDateTime
+    pub publication_date: NaiveDateTime,
+    pub description: Option<String>
 }
 
 #[derive(Insertable)]
@@ -38,5 +39,6 @@ pub struct NewItem {
     pub feed: String,
     pub title: String,
     pub link: String,
-    pub publication_date: NaiveDateTime
+    pub publication_date: NaiveDateTime,
+    pub description: Option<String>
 }

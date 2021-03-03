@@ -56,8 +56,14 @@ pub fn refresh_feed(feed: &db::models::Feed) -> Result<()> {
     //let description_selector = None;
 
     for node in document.select(&node_selector) {
+
+        let mut description = None;
+
         let title_element = match title_selector {
-            Some(ref ts) => node.select(ts).next(),
+            Some(ref ts) => {
+                description = Some(node.inner_html());
+                node.select(ts).next()
+            },
             None => Some(node),
         };
 
@@ -99,6 +105,7 @@ pub fn refresh_feed(feed: &db::models::Feed) -> Result<()> {
                     feed: feed.id.clone(),
                     title: String::from(title),
                     link: String::from(link_url),
+                    description: description,
                     publication_date: chrono::Utc::now().naive_utc()
                 };
 
@@ -119,6 +126,7 @@ pub fn to_rss(feed: &db::models::Feed, feed_items: Vec<db::models::Item>)  -> Re
             .guid(Some(Guid{ value: feed_item.id.clone(), permalink: false }))
             .title(Some(feed_item.title.clone()))
             .link(Some(feed_item.link.clone()))
+            .description(feed_item.description.clone())
             .pub_date(Some(Utc.from_utc_datetime(&feed_item.publication_date).to_rfc2822()))
             .build()
             .unwrap();
