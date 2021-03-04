@@ -8,9 +8,10 @@ extern crate tokio;
 
 #[macro_use]
 extern crate rocket;
-
+extern crate html5ever;
 extern crate rocket_contrib;
 extern crate rocket_http;
+extern crate markup5ever_rcdom as rcdom;
 
 #[macro_use]
 extern crate diesel;

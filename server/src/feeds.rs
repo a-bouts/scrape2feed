@@ -7,7 +7,7 @@ use scraper::{Html, Selector};
 
 use std::collections::HashMap;
 
-use crate::db;
+use crate::{db, downloader};
 
 pub fn refresh_feed(feed: &db::models::Feed) -> Result<()> {
 
@@ -21,18 +21,9 @@ pub fn refresh_feed(feed: &db::models::Feed) -> Result<()> {
         items.insert(i.link.clone(), i);
     }
 
-    let resp = reqwest::blocking::Client::new()
-        .get(&*(feed.link.clone()))
-        .header(
-            USER_AGENT,
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:84.0) Gecko/20100101 Firefox/84.0",
-        )
-        .send()?;
-    assert!(resp.status().is_success());
+    let document = downloader::download(feed.link.clone())?;
 
-    let document = &resp.text()?;
-
-    let document = Html::parse_document(document);
+    let document = Html::parse_document(&document);
 
     let feed_title_selector = Selector::parse("head title").unwrap();
 

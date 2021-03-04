@@ -24,6 +24,8 @@ diesel_migrations = { version = "*", features = ["sqlite"] }
 dotenv = "*"
 uuid = { version = "*", features = ["serde", "v4"] }
 libsqlite3-sys = { version = "0.18.0", features = ["bundled"] }
+html5ever = "*"
+markup5ever_rcdom= "*"
 
 [dependencies.rocket_contrib]
 version = "*"
