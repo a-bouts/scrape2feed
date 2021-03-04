@@ -1,9 +1,9 @@
 <template>
   <div class="container">
-    <section class="hero is-small">
+    <section ref="form" class="hero is-small">
       <div class="hero-body">
         <div class="columns is-vcentered">
-          <div class="column">
+          <div class="column is-hidden-mobile">
             <div class="field is-horizontal">
               <div class="field-label is-small">
                 <label class="label">Url</label>
@@ -29,7 +29,7 @@
               </div>
             </div>
           </div>
-          <div class="column">
+          <div class="column is-hidden-mobile">
             <div class="field is-horizontal">
               <div class="field-label is-small">
                 <label class="label">Node Selector</label>
@@ -75,18 +75,25 @@
             </div>
           </div>
           <div class="column is-1">
-            <p class="buttons">
-              <button class="button is-fullwidth is-primary is-small" @click="add">Add</button>
-            </p>
+            <div class="columns is-mobile">
+              <div class="column is-hidden-desktop">
+                <p class="buttons">
+                  <button class="button is-fullwidth is-small" :class="{'is-info': state == 'STATE_SELECTING'}" @click="selectTitle">Set</button>
+                </p>
+              </div>
+              <div class="column">
+                <p class="buttons">
+                  <button class="button is-fullwidth is-primary is-small" @click="add">Add</button>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
     <div>
-      <figure class="image is-16by9">
-        <iframe class="has-ratio" width="100%" id='iframe' ref='iframe' :src="downloadUrl" @load="getTitle"></iframe>
-      </figure>
+      <iframe width="100%" id='iframe' ref='iframe' :src="downloadUrl" @load="getTitle"></iframe>
     </div>
   </div>
 </template>
@@ -151,6 +158,8 @@ export default {
     this.downloadUrl = '/api/v1/download/?url=' + encodeURI(this.url)
   },
   mounted() {
+    console.log(this.$refs.iframe)
+    this.$refs.iframe.height = window.innerHeight - this.$refs.form.clientHeight - 10
   },
   methods: {
     getTitle() {
