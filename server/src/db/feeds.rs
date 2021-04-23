@@ -17,7 +17,7 @@ pub(crate) fn establish_connection() -> SqliteConnection {
 pub fn get_feeds() -> Vec<Feed> {
     let connection = establish_connection();
     feeds
-        .limit(20)
+        //.limit(20)
         .load::<Feed>(&connection)
         .expect("Error loading feeds")
 }
