@@ -1,10 +1,16 @@
 use diesel::prelude::*;
 use dotenv::dotenv;
 use std::env;
+use std::ops::Deref;
+use std::sync::{Arc};
+use diesel::Connection;
+use log::error;
+use tokio::sync::Mutex;
 
 use uuid::Uuid;
 use crate::db::models::*;
 use crate::db::schema::feeds::dsl::*;
+
 
 pub(crate) fn establish_connection() -> SqliteConnection {
     dotenv().ok();
@@ -14,18 +20,22 @@ pub(crate) fn establish_connection() -> SqliteConnection {
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
 }
 
-pub fn get_feeds() -> Vec<Feed> {
-    let connection = establish_connection();
+pub async fn get_feeds(cnx: Arc<Mutex<SqliteConnection>>) -> Vec<Feed> {
+
+    let cnx = cnx.lock().await;
+
     feeds
         //.limit(20)
-        .load::<Feed>(&connection)
+        .load::<Feed>(cnx.deref())
         .expect("Error loading feeds")
 }
 
-pub fn get_feed(feed_id: String) -> Option<Feed> {
-    let connection = establish_connection();
+pub async fn get_feed(cnx: Arc<Mutex<SqliteConnection>>, feed_id: String) -> Option<Feed> {
+
+    let cnx = cnx.lock().await;
+
     let mut fs = feeds.find(feed_id)
-        .load::<Feed>(&connection)
+        .load::<Feed>(cnx.deref())
         .expect("Error finding feed");
 
     if fs.len() == 0 {
@@ -35,15 +45,17 @@ pub fn get_feed(feed_id: String) -> Option<Feed> {
     Some(fs.remove(0))
 }
 
-pub fn delete_feed(feed: Feed) -> usize {
-    let connection = establish_connection();
+pub async fn delete_feed(cnx: Arc<Mutex<SqliteConnection>>, feed: Feed) -> usize {
+    let cnx = cnx.lock().await;
+
     diesel::delete(&feed)
-        .execute(&connection)
+        .execute(cnx.deref())
         .expect("Error finding feed")
 }
 
-pub fn create_feed(feed: NewFeed) -> String {
-    let connection = establish_connection();
+pub async fn create_feed(cnx: Arc<Mutex<SqliteConnection>>, feed: NewFeed) -> String {
+
+    let cnx = cnx.lock().await;
 
     let uuid = Uuid::new_v4().to_hyphenated().to_string();
 
@@ -58,7 +70,7 @@ pub fn create_feed(feed: NewFeed) -> String {
 
     diesel::insert_into(crate::db::schema::feeds::table)
         .values(&new_feed)
-        .execute(&connection)
+        .execute(cnx.deref())
         .expect("Error saving new feed");
 
     uuid

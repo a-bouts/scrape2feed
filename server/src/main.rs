@@ -1,16 +1,7 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
-extern crate log;
-extern crate pretty_env_logger;
-extern crate reqwest;
-extern crate rss;
-extern crate tokio;
-
 #[macro_use]
 extern crate rocket;
-extern crate html5ever;
-extern crate rocket_contrib;
-extern crate rocket_http;
 extern crate markup5ever_rcdom as rcdom;
 
 #[macro_use]
@@ -18,9 +9,6 @@ extern crate diesel;
 #[macro_use]
 extern crate diesel_migrations;
 
-extern crate dotenv;
-
-extern crate uuid;
 
 mod api;
 mod feeds;
@@ -28,20 +16,39 @@ mod db;
 mod downloader;
 
 use std::env;
+use std::sync::Arc;
+use rocket::fs::FileServer;
+use tokio::sync::Mutex;
 
 embed_migrations!("./migrations");
 
-fn main() {
-    let connection = db::feeds::establish_connection();
+#[launch]
+fn rocket() -> _ {
+    std::env::var("RUST_LOG").map_err(|_| {
+        std::env::set_var("RUST_LOG", "debug,server=debug");
+    });
+    env_logger::init();
 
-    embedded_migrations::run_with_output(&connection, &mut std::io::stdout());
+    let cnx = Arc::new(Mutex::new(db::feeds::establish_connection()));
 
-    if env::var_os("RUST_LOG").is_none() {
-        env::set_var("RUST_LOG", "scrape2feed=debug,rocket=debug");
-    }
-    // pretty_env_logger::init();
-
-    api::server::init().launch();
-    //hacker_news("https://gum-gum-streaming.com/one-piece-vostfr/").await;
+    rocket::build()
+        .manage(cnx)
+        //.mount("/", FileServer::from("/static"))
+        .mount("/-", routes![api::healthz])
+        .mount("/api/v1", routes![api::v1::download, api::v1::get_feeds, api::v1::get_feed, api::v1::post_feed, api::v1::delete_feed, api::v1::get_feed_content])
 }
 
+// fn main() {
+//     let connection = db::feeds::establish_connection();
+//
+//     embedded_migrations::run_with_output(&connection, &mut std::io::stdout());
+//
+//     if env::var_os("RUST_LOG").is_none() {
+//         env::set_var("RUST_LOG", "scrape2feed=debug,rocket=debug");
+//     }
+//     // pretty_env_logger::init();
+//
+//     api::server::init().launch();
+//     //hacker_news("https://gum-gum-streaming.com/one-piece-vostfr/").await;
+// }
+//

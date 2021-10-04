@@ -1,28 +1,29 @@
-use rocket_contrib::json::Json;
 
 use crate::api::model::*;
 use crate::{db, feeds, downloader};
 use chrono::format::format;
 use rocket::http::Status;
 use std::io::Cursor;
+use std::sync::Arc;
+use diesel::SqliteConnection;
 use rocket::response::Result;
 use reqwest::header::USER_AGENT;
+use rocket::serde::{Serialize, json::Json};
+use rocket::State;
+use tokio::sync::Mutex;
 
 #[get("/download?<url>")]
-pub fn download(url: String) -> Result<'static> {
+pub fn download(url: String) -> (Status, String) {
 
     match downloader::download(url) {
-        Ok(t) => Ok(rocket::response::Response::build()
-            .status(Status::Ok)
-            .sized_body(Cursor::new(t))
-            .finalize()),
-        Err(_e) => Err(Status::InternalServerError)
+        Ok(t) => (Status::Ok, t),
+        Err(_e) => (Status::InternalServerError, "".to_string())
     }
 }
 
 #[get("/feeds")]
-pub fn get_feeds() -> Json<Vec<Feed>> {
-    let feeds = db::feeds::get_feeds();
+pub async fn get_feeds(cnx: &State<Arc<Mutex<SqliteConnection>>>) -> Json<Vec<Feed>> {
+    let feeds = db::feeds::get_feeds(cnx.inner().clone()).await;
 
     let mut model: Vec<Feed> = Vec::new();
 
@@ -42,10 +43,11 @@ pub fn get_feeds() -> Json<Vec<Feed>> {
 }
 
 #[get("/feeds/<id>/debug")]
-pub fn get_feed(id: String) -> Json<Option<Feed>> {
-    let feed = db::feeds::get_feed(id.clone());
+pub async fn get_feed(id: String, cnx: &State<Arc<Mutex<SqliteConnection>>>) -> Json<Option<Feed>> {
 
-    let items = db::items::get_items(id.clone());
+    let feed = db::feeds::get_feed(cnx.inner().clone(), id.clone()).await;
+
+    let items = db::items::get_items(cnx.inner().clone(), id.clone()).await;
 
     let mut items_model = Vec::new();
 
@@ -74,27 +76,25 @@ pub fn get_feed(id: String) -> Json<Option<Feed>> {
 }
 
 #[get("/feeds/<id>")]
-pub fn get_feed_content(id: String) -> Result<'static> {
-    let feed = db::feeds::get_feed(id.clone());
+pub async fn get_feed_content(id: String, cnx: &State<Arc<Mutex<SqliteConnection>>>) -> (Status, String) {
+
+    let feed = db::feeds::get_feed(cnx.inner().clone(), id.clone()).await;
 
     match feed {
         Some(f) => {
-            feeds::refresh_feed(&f);
+            feeds::refresh_feed(cnx.inner().clone(), &f).await;
 
-            match feeds::to_rss(&f, db::items::get_items(id)) {
-                Ok(r) => Ok(rocket::response::Response::build()
-                    .status(Status::Ok)
-                    .sized_body(Cursor::new(r))
-                    .finalize()),
-                Err(_e) => Err(Status::InternalServerError)
+            match feeds::to_rss(&f, db::items::get_items(cnx.inner().clone(), id).await) {
+                Ok(r) => (Status::Ok, r),
+                Err(_e) => (Status::InternalServerError, "".to_string())
             }
         },
-        None => Err(Status::NotFound)
+        None => (Status::NotFound, "".to_string())
     }
 }
 
 #[post("/feeds", format = "application/json", data = "<feed>")]
-pub fn post_feed(feed: Json<Feed>) -> String {
+pub async fn post_feed(feed: Json<Feed>, cnx: &State<Arc<Mutex<SqliteConnection>>>) -> String {
     let new_feed = db::models::NewFeed {
         id: None,
         title: feed.title.clone(),
@@ -122,22 +122,20 @@ pub fn post_feed(feed: Json<Feed>) -> String {
         },
     };
 
-    return db::feeds::create_feed(new_feed);
+    return db::feeds::create_feed(cnx.inner().clone(), new_feed).await;
 }
 
 #[delete("/feeds/<id>")]
-pub fn delete_feed(id: String) -> Result<'static> {
+pub async fn delete_feed(id: String, cnx: &State<Arc<Mutex<SqliteConnection>>>) -> Status {
 
-    let feed = db::feeds::get_feed(id.clone());
+    let feed = db::feeds::get_feed(cnx.inner().clone(), id.clone()).await;
 
     match feed {
         Some(f) => {
-            db::items::delete_items(id.clone());
-            db::feeds::delete_feed(f);
-            Ok(rocket::response::Response::build()
-               .status(Status::NoContent)
-               .finalize())
+            db::items::delete_items(cnx.inner().clone(), id.clone()).await;
+            db::feeds::delete_feed(cnx.inner().clone(), f).await;
+            Status::NoContent
         },
-        None => Err(Status::NotFound),
+        None => Status::NotFound,
     }
 }

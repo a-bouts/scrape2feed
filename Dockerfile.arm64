@@ -1,5 +1,5 @@
 ########################## BUILD IMAGE  ##########################
-FROM rust:1.50 as build
+FROM rust:1.55 as build
 
 ARG DB=sqlite
 

@@ -6,14 +6,18 @@ use rss::{ChannelBuilder, Item, ItemBuilder, Guid};
 use scraper::{Html, Selector};
 
 use std::collections::HashMap;
+use std::sync::Arc;
+use diesel::SqliteConnection;
+use rocket::tokio::sync::Mutex;
 
 use crate::{db, downloader};
+use crate::db::models::Feed;
 
-pub fn refresh_feed(feed: &db::models::Feed) -> Result<()> {
+pub async fn refresh_feed(cnx: Arc<Mutex<SqliteConnection>>, feed: &db::models::Feed) -> Result<()> {
 
     info!("get feed content '{}'", feed.title);
 
-    let feed_items = db::items::get_items(feed.id.clone());
+    let feed_items = db::items::get_items(cnx.clone(), feed.id.clone()).await;
 
     let mut items = HashMap::new();
 
@@ -100,7 +104,7 @@ pub fn refresh_feed(feed: &db::models::Feed) -> Result<()> {
                     publication_date: chrono::Utc::now().naive_utc()
                 };
 
-                db::items::create_item(item);
+                db::items::create_item(cnx.clone(), item);
             }
         };
     };

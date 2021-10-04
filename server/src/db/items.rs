@@ -1,21 +1,25 @@
 use diesel::prelude::*;
 use dotenv::dotenv;
 use std::env;
+use std::ops::Deref;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 use uuid::Uuid;
 use crate::db::models::*;
 use crate::db::schema::items::dsl::*;
 use crate::db::feeds;
 
-pub fn get_items(feed_id: String) -> Vec<Item> {
-    let connection = feeds::establish_connection();
+pub async fn get_items(cnx: Arc<Mutex<SqliteConnection>>, feed_id: String) -> Vec<Item> {
+    let cnx = cnx.lock().await;
+
     items.filter(feed.eq(feed_id.clone()))
-        .load::<Item>(&connection)
+        .load::<Item>(cnx.deref())
         .expect("Error loading items")
 }
 
-pub fn create_item(item: NewItem) -> String {
-    let connection = feeds::establish_connection();
+pub async fn create_item(cnx: Arc<Mutex<SqliteConnection>>, item: NewItem) -> String {
+    let cnx = cnx.lock().await;
 
     let uuid = Uuid::new_v4().to_hyphenated().to_string();
 
@@ -30,16 +34,16 @@ pub fn create_item(item: NewItem) -> String {
 
     diesel::insert_into(crate::db::schema::items::table)
         .values(&new_item)
-        .execute(&connection)
+        .execute(cnx.deref())
         .expect("Error saving new feed");
 
     uuid
 }
 
-pub fn delete_items(feed_id: String) -> usize {
-    let connection = feeds::establish_connection();
+pub async fn delete_items(cnx: Arc<Mutex<SqliteConnection>>, feed_id: String) -> usize {
+    let cnx = cnx.lock().await;
 
     diesel::delete(items.filter(feed.eq(feed_id)))
-        .execute(&connection)
+        .execute(cnx.deref())
         .expect("Error deleting items")
 }

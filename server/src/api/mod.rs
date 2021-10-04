@@ -1,3 +1,9 @@
+use rocket::http::Status;
+
 mod model;
-mod v1;
-pub mod server;
+pub(crate) mod v1;
+
+#[get("/healthz")]
+pub(crate) fn healthz() -> Status {
+    Status::Ok
+}
