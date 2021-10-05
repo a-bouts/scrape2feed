@@ -17,6 +17,10 @@ pub async fn refresh_feed(cnx: Arc<Mutex<SqliteConnection>>, feed: &db::models::
 
     debug!("get feed content '{}'", feed.title);
 
+    let mut new_items = Vec::new();
+
+    {
+
     let feed_items = db::items::get_items(cnx.clone(), feed.id.clone()).await;
 
     let mut items = HashMap::new();
@@ -104,10 +108,16 @@ pub async fn refresh_feed(cnx: Arc<Mutex<SqliteConnection>>, feed: &db::models::
                     publication_date: chrono::Utc::now().naive_utc()
                 };
 
-                db::items::create_item(cnx.clone(), item).await;
+                new_items.push(item);
+
             }
         };
     };
+    }
+
+    for item in new_items {
+        db::items::create_item(cnx.clone(), item).await;
+    }
 
     Ok(())
 }
