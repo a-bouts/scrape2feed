@@ -88,8 +88,6 @@ pub async fn get_feed_content(id: String, cnx: &State<Arc<Mutex<SqliteConnection
     match feed {
         Some(f) => {
 
-            info!("Get feed content '{}'", &f.title);
-
             feeds::refresh_feed(cnx.inner().clone(), &f).await;
 
             match feeds::to_rss(&f, db::items::get_items(cnx.inner().clone(), id).await) {
