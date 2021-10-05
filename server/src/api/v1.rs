@@ -1,6 +1,7 @@
 
 use crate::api::model::*;
 use crate::{db, feeds, downloader};
+use log::info;
 use chrono::format::format;
 use rocket::http::Status;
 use std::io::Cursor;
@@ -80,8 +81,11 @@ pub async fn get_feed_content(id: String, cnx: &State<Arc<Mutex<SqliteConnection
 
     let feed = db::feeds::get_feed(cnx.inner().clone(), id.clone()).await;
 
+
     match feed {
         Some(f) => {
+            info!("Get feed content '{}'", &f.title);
+
             feeds::refresh_feed(cnx.inner().clone(), &f).await;
 
             match feeds::to_rss(&f, db::items::get_items(cnx.inner().clone(), id).await) {
