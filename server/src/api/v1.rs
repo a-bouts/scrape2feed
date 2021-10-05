@@ -1,7 +1,7 @@
 
 use crate::api::model::*;
 use crate::{db, feeds, downloader};
-use log::info;
+use log::{info, error};
 use chrono::format::format;
 use rocket::http::Status;
 use std::io::Cursor;
@@ -12,6 +12,7 @@ use reqwest::header::USER_AGENT;
 use rocket::serde::{Serialize, json::Json};
 use rocket::State;
 use tokio::sync::Mutex;
+use tokio::time::Instant;
 
 #[get("/download?<url>")]
 pub fn download(url: String) -> (Status, String) {
@@ -79,18 +80,27 @@ pub async fn get_feed(id: String, cnx: &State<Arc<Mutex<SqliteConnection>>>) -> 
 #[get("/feeds/<id>")]
 pub async fn get_feed_content(id: String, cnx: &State<Arc<Mutex<SqliteConnection>>>) -> (Status, String) {
 
+    let start = Instant::now();
+
     let feed = db::feeds::get_feed(cnx.inner().clone(), id.clone()).await;
 
 
     match feed {
         Some(f) => {
+
             info!("Get feed content '{}'", &f.title);
 
             feeds::refresh_feed(cnx.inner().clone(), &f).await;
 
             match feeds::to_rss(&f, db::items::get_items(cnx.inner().clone(), id).await) {
-                Ok(r) => (Status::Ok, r),
-                Err(_e) => (Status::InternalServerError, "".to_string())
+                Ok(r) => {
+                    info!("Get feed content '{}' in {}", &f.title, Instant::now().duration_since(start).as_secs());
+                    (Status::Ok, r)
+                },
+                Err(e) => {
+                    error!("Error getting feed content '{}' : {}", &f.title, e);
+                    (Status::InternalServerError, "".to_string())
+                }
             }
         },
         None => (Status::NotFound, "".to_string())

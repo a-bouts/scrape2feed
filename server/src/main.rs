@@ -25,7 +25,7 @@ embed_migrations!("./migrations");
 #[launch]
 fn rocket() -> _ {
     std::env::var("RUST_LOG").map_err(|_| {
-        std::env::set_var("RUST_LOG", "debug,server=debug");
+        std::env::set_var("RUST_LOG", "error,server=info");
     });
     env_logger::init();
 
