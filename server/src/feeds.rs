@@ -104,7 +104,7 @@ pub async fn refresh_feed(cnx: Arc<Mutex<SqliteConnection>>, feed: &db::models::
                     publication_date: chrono::Utc::now().naive_utc()
                 };
 
-                db::items::create_item(cnx.clone(), item);
+                db::items::create_item(cnx.clone(), item).await;
             }
         };
     };
