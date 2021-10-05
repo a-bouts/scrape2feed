@@ -1,5 +1,5 @@
 use chrono::{DateTime, TimeZone, Utc};
-use log::info;
+use log::{info, debug};
 use reqwest::{Result, Url};
 use reqwest::header::USER_AGENT;
 use rss::{ChannelBuilder, Item, ItemBuilder, Guid};
@@ -15,7 +15,7 @@ use crate::db::models::Feed;
 
 pub async fn refresh_feed(cnx: Arc<Mutex<SqliteConnection>>, feed: &db::models::Feed) -> Result<()> {
 
-    info!("get feed content '{}'", feed.title);
+    debug!("get feed content '{}'", feed.title);
 
     let feed_items = db::items::get_items(cnx.clone(), feed.id.clone()).await;
 
@@ -37,7 +37,7 @@ pub async fn refresh_feed(cnx: Arc<Mutex<SqliteConnection>>, feed: &db::models::
         feed_title = fd.inner_html();
     }
 
-    info!("found title '{}'", feed_title);
+    debug!("found title '{}'", feed_title);
 
     let node_selector = Selector::parse(&feed.node_selector).unwrap();
     let title_selector: Option<Selector> = match &feed.title_selector {
