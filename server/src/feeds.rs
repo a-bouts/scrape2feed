@@ -29,7 +29,7 @@ pub async fn refresh_feed(cnx: Arc<Mutex<SqliteConnection>>, feed: &db::models::
         items.insert(i.link.clone(), i);
     }
 
-    let document = downloader::download(feed.link.clone())?;
+    let document = downloader::download(feed.link.clone()).await?;
 
     let document = Html::parse_document(&document);
 

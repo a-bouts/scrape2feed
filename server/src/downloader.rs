@@ -6,17 +6,17 @@ use rcdom::{Handle, NodeData, RcDom, SerializableHandle};
 use html5ever::serialize::{SerializeOpts, serialize};
 use html5ever::tendril::TendrilSink;
 
-pub fn download(url: String) -> Result<String> {
-    let resp = reqwest::blocking::Client::new()
+pub async fn download(url: String) -> Result<String> {
+    let resp = reqwest::Client::new()
         .get(&url)
         .header(
             USER_AGENT,
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:84.0) Gecko/20100101 Firefox/84.0",
         )
-        .send()?;
+        .send().await?;
     assert!(resp.status().is_success());
 
-    Ok(clean(resp.text()?))
+    Ok(clean(resp.text().await?))
 }
 
 fn clean(data: String) -> String {

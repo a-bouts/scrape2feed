@@ -3,7 +3,7 @@ use crate::api::model::*;
 use crate::{db, feeds, downloader};
 use log::{info, error};
 use chrono::format::format;
-use rocket::http::Status;
+use rocket::http::{Status, ContentType};
 use std::io::Cursor;
 use std::sync::Arc;
 use diesel::SqliteConnection;
@@ -15,11 +15,11 @@ use tokio::sync::Mutex;
 use tokio::time::Instant;
 
 #[get("/download?<url>")]
-pub fn download(url: String) -> (Status, String) {
+pub async fn download(url: String) -> (Status, (ContentType, String)) {
 
-    match downloader::download(url) {
-        Ok(t) => (Status::Ok, t),
-        Err(_e) => (Status::InternalServerError, "".to_string())
+    match downloader::download(url).await {
+        Ok(t) => (Status::Ok, (ContentType::HTML, t)),
+        Err(_e) => (Status::InternalServerError, (ContentType::Text, "".to_string()))
     }
 }
 

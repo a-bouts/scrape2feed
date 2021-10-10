@@ -33,7 +33,7 @@ fn rocket() -> _ {
 
     rocket::build()
         .manage(cnx)
-        .mount("/", FileServer::from("/static"))
+        //.mount("/", FileServer::from("/static"))
         .mount("/-", routes![api::healthz])
         .mount("/api/v1", routes![api::v1::download, api::v1::get_feeds, api::v1::get_feed, api::v1::post_feed, api::v1::delete_feed, api::v1::get_feed_content])
 }
