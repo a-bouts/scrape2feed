@@ -1,16 +1,11 @@
+<script setup>
+</script>
+
 <template>
   <router-view></router-view>
 </template>
 
-<script>
-export default {
-  name: 'App',
-  components: {
-  }
-}
-</script>
-
-<style>
+<style scoped>
 html,
 body {
   height: 100%;

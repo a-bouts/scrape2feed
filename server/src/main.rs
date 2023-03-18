@@ -6,8 +6,6 @@ extern crate markup5ever_rcdom as rcdom;
 
 #[macro_use]
 extern crate diesel;
-#[macro_use]
-extern crate diesel_migrations;
 
 
 mod api;
@@ -15,12 +13,13 @@ mod feeds;
 mod db;
 mod downloader;
 
-use std::env;
+
 use std::sync::Arc;
+use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use rocket::fs::FileServer;
 use tokio::sync::Mutex;
 
-embed_migrations!("./migrations");
+pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("./migrations");
 
 #[launch]
 fn rocket() -> _ {
@@ -29,7 +28,9 @@ fn rocket() -> _ {
     });
     env_logger::init();
 
-    let cnx = Arc::new(Mutex::new(db::feeds::establish_connection()));
+    let mut cnx = db::feeds::establish_connection();
+    cnx.run_pending_migrations(MIGRATIONS).unwrap();
+    let cnx = Arc::new(Mutex::new(cnx));
 
     rocket::build()
         .manage(cnx)

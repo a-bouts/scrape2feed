@@ -1,7 +1,7 @@
-use chrono::{DateTime, TimeZone, Utc};
+use chrono::{TimeZone, Utc};
 use log::{info, debug};
-use reqwest::{Result, Url};
-use reqwest::header::USER_AGENT;
+use reqwest::{Result};
+
 use rss::{ChannelBuilder, Item, ItemBuilder, Guid};
 use scraper::{Html, Selector};
 
@@ -11,7 +11,7 @@ use diesel::SqliteConnection;
 use rocket::tokio::sync::Mutex;
 
 use crate::{db, downloader};
-use crate::db::models::Feed;
+
 
 pub async fn refresh_feed(cnx: Arc<Mutex<SqliteConnection>>, feed: &db::models::Feed) -> Result<()> {
 
@@ -133,8 +133,7 @@ pub fn to_rss(feed: &db::models::Feed, feed_items: Vec<db::models::Item>)  -> Re
             .link(Some(feed_item.link.clone()))
             .description(feed_item.description.clone())
             .pub_date(Some(Utc.from_utc_datetime(&feed_item.publication_date).to_rfc2822()))
-            .build()
-            .unwrap();
+            .build();
 
         items.push(item)
     }
@@ -144,8 +143,7 @@ pub fn to_rss(feed: &db::models::Feed, feed_items: Vec<db::models::Item>)  -> Re
         .link(feed.link.clone())
         .last_build_date(Some(Utc::now().to_rfc2822()))
         .items(items)
-        .build()
-        .unwrap();
+        .build();
 
     Ok(channel.to_string())
 }

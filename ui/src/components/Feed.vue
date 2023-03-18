@@ -11,7 +11,7 @@
               <div class="field-body">
                 <div class="field">
                   <p class="control is-expanded">
-                    <input class="input is-small" type="text" placeholder="url" v-model="url">
+                    <input class="input is-small" readonly type="text" placeholder="url" :value="url">
                   </p>
                 </div>
               </div>
@@ -23,7 +23,7 @@
               <div class="field-body">
                 <div class="field">
                   <p class="control is-expanded">
-                    <input class="input is-small" type="text" placeholder="url" v-model="feed.title">
+                    <input class="input is-small" type="text" placeholder="title" v-model="feed.title">
                   </p>
                 </div>
               </div>

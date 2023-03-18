@@ -1,10 +1,11 @@
 use diesel::prelude::*;
 use dotenv::dotenv;
 use std::env;
-use std::ops::Deref;
+
+use std::ops::DerefMut;
 use std::sync::{Arc};
 use diesel::Connection;
-use log::error;
+
 use tokio::sync::Mutex;
 
 use uuid::Uuid;
@@ -22,20 +23,20 @@ pub(crate) fn establish_connection() -> SqliteConnection {
 
 pub async fn get_feeds(cnx: Arc<Mutex<SqliteConnection>>) -> Vec<Feed> {
 
-    let cnx = cnx.lock().await;
+    let mut cnx = cnx.lock().await;
 
     feeds
         //.limit(20)
-        .load::<Feed>(cnx.deref())
+        .load::<Feed>(cnx.deref_mut())
         .expect("Error loading feeds")
 }
 
 pub async fn get_feed(cnx: Arc<Mutex<SqliteConnection>>, feed_id: String) -> Option<Feed> {
 
-    let cnx = cnx.lock().await;
+    let mut cnx = cnx.lock().await;
 
     let mut fs = feeds.find(feed_id)
-        .load::<Feed>(cnx.deref())
+        .load::<Feed>(cnx.deref_mut())
         .expect("Error finding feed");
 
     if fs.len() == 0 {
@@ -46,18 +47,18 @@ pub async fn get_feed(cnx: Arc<Mutex<SqliteConnection>>, feed_id: String) -> Opt
 }
 
 pub async fn delete_feed(cnx: Arc<Mutex<SqliteConnection>>, feed: Feed) -> usize {
-    let cnx = cnx.lock().await;
+    let mut cnx = cnx.lock().await;
 
     diesel::delete(&feed)
-        .execute(cnx.deref())
+        .execute(cnx.deref_mut())
         .expect("Error finding feed")
 }
 
 pub async fn create_feed(cnx: Arc<Mutex<SqliteConnection>>, feed: NewFeed) -> String {
 
-    let cnx = cnx.lock().await;
+    let mut cnx = cnx.lock().await;
 
-    let uuid = Uuid::new_v4().to_hyphenated().to_string();
+    let uuid = Uuid::new_v4().hyphenated().to_string();
 
     let new_feed = NewFeed {
         id: Some(uuid.clone()),
@@ -70,7 +71,7 @@ pub async fn create_feed(cnx: Arc<Mutex<SqliteConnection>>, feed: NewFeed) -> St
 
     diesel::insert_into(crate::db::schema::feeds::table)
         .values(&new_feed)
-        .execute(cnx.deref())
+        .execute(cnx.deref_mut())
         .expect("Error saving new feed");
 
     uuid

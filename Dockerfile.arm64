@@ -1,5 +1,5 @@
 ########################## BUILD IMAGE  ##########################
-FROM rust:1.50 as build
+FROM rust as build
 
 ARG DB=sqlite
 
@@ -81,7 +81,7 @@ RUN yarn build
 ######################## RUNTIME IMAGE  ########################
 # Create a new stage with a minimal image
 # because we already have a binary built
-FROM balenalib/aarch64-debian:buster
+FROM balenalib/aarch64-debian:bookworm
 
 ENV ROCKET_ENV "production"
 ENV ROCKET_PORT=80

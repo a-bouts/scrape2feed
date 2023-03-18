@@ -2,14 +2,14 @@
 use crate::api::model::*;
 use crate::{db, feeds, downloader};
 use log::{info, error};
-use chrono::format::format;
+
 use rocket::http::{Status, ContentType};
-use std::io::Cursor;
+
 use std::sync::Arc;
 use diesel::SqliteConnection;
-use rocket::response::Result;
-use reqwest::header::USER_AGENT;
-use rocket::serde::{Serialize, json::Json};
+
+
+use rocket::serde::{json::Json};
 use rocket::State;
 use tokio::sync::Mutex;
 use tokio::time::Instant;
@@ -78,7 +78,9 @@ pub async fn get_feed(id: String, cnx: &State<Arc<Mutex<SqliteConnection>>>) -> 
 }
 
 #[get("/feeds/<id>")]
-pub async fn get_feed_content(id: String, cnx: &State<Arc<Mutex<SqliteConnection>>>) -> (Status, String) {
+pub async fn get_feed_content(id: String, cnx: &State<Arc<Mutex<SqliteConnection>>>) -> (Status, (ContentType, String)) {
+
+    let content_type = ContentType::new("application", "rss+xml");
 
     let start = Instant::now();
 
@@ -93,15 +95,15 @@ pub async fn get_feed_content(id: String, cnx: &State<Arc<Mutex<SqliteConnection
             match feeds::to_rss(&f, db::items::get_items(cnx.inner().clone(), id).await) {
                 Ok(r) => {
                     info!("Get feed content '{}' in {}", &f.title, Instant::now().duration_since(start).as_secs());
-                    (Status::Ok, r)
+                    (Status::Ok, (content_type, r))
                 },
                 Err(e) => {
                     error!("Error getting feed content '{}' : {}", &f.title, e);
-                    (Status::InternalServerError, "".to_string())
+                    (Status::InternalServerError, (content_type, "".to_string()))
                 }
             }
         },
-        None => (Status::NotFound, "".to_string())
+        None => (Status::NotFound, (content_type, "".to_string()))
     }
 }
 

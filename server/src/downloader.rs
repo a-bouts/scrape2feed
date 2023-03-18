@@ -3,7 +3,7 @@ use reqwest::header::USER_AGENT;
 use html5ever::{ParseOpts, parse_document};
 use html5ever::tree_builder::{TreeBuilderOpts, TreeSink};
 use rcdom::{Handle, NodeData, RcDom, SerializableHandle};
-use html5ever::serialize::{SerializeOpts, serialize};
+use html5ever::serialize::{serialize};
 use html5ever::tendril::TendrilSink;
 
 pub async fn download(url: String) -> Result<String> {
@@ -52,17 +52,17 @@ trait Walk {
         match node.data {
             NodeData::Document => {}
             NodeData::Doctype {
-                ref name,
-                ref public_id,
-                ref system_id,
+                name: _,
+                public_id: _,
+                system_id: _,
             } => {}
-            NodeData::Text { ref contents } => {}
-            NodeData::Comment { ref contents } => {}
+            NodeData::Text { contents: _ } => {}
+            NodeData::Comment { contents: _ } => {}
             NodeData::ProcessingInstruction { .. } => {}
 
             NodeData::Element {
                 ref name,
-                ref attrs,
+                
                 ..
             } => {
                 if name.local.to_lowercase() == String::from("noscript") || name.local.to_lowercase() == String::from("script") {
