@@ -99,7 +99,7 @@
 </template>
 
 <script>
-import * as $ from 'jquery'
+//import $ from "jquery"
 
 export default {
   name: 'Feed',
@@ -158,7 +158,6 @@ export default {
     this.downloadUrl = '/api/v1/download/?url=' + encodeURI(this.url)
   },
   mounted() {
-    console.log(this.$refs.iframe)
     this.$refs.iframe.height = window.innerHeight - this.$refs.form.clientHeight - 10
   },
   methods: {
